@@ -10,6 +10,10 @@
 #define WITH_SIMULATOR	1
 	// otherwise, send test sequences
 
+#define ALIVE_LED		2
+#define ALIVE_OFF_TIME	980
+#define ALIVE_ON_TIME	20
+
 
 #if WITH_SIMULATOR
 	extern void simulator_run();
@@ -35,6 +39,11 @@
 
 void setup()
 {
+	#if ALIVE_LED
+		pinMode(ALIVE_LED,OUTPUT);
+		digitalWrite(ALIVE_LED,1);
+	#endif
+
 	Serial.begin(921600);
 	delay(1000);
 	Serial.println("WTF");
@@ -43,11 +52,28 @@ void setup()
 	NMEA_SERIAL.begin(38400, SERIAL_8N1, RXD2, TXD2);
 
 	display(0,"NMEA0183 setup() completed",0);
+
+	#if ALIVE_LED
+		digitalWrite(ALIVE_LED,0);
+	#endif
 }
 
 
 void loop()
 {
+	#if ALIVE_LED
+		static bool alive_on = 0;
+		static uint32_t last_alive_time = 0;
+		uint32_t alive_now = millis();
+		uint32_t alive_delay = alive_on ? ALIVE_ON_TIME : ALIVE_OFF_TIME;
+		if (alive_now - last_alive_time >= alive_delay)
+		{
+			alive_on = !alive_on;
+			digitalWrite(ALIVE_LED,alive_on);
+			last_alive_time = alive_now;
+		}
+	#endif
+	 
 	#if WITH_SIMULATOR
 		simulator_run();
 	#else
