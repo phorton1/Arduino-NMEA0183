@@ -4,39 +4,9 @@
 
 #pragma once
 
-#define NMEA_SERIAL	Serial2
-#define RXD2	16
-#define TXD2	17
-
-
-typedef struct
-{
-	const char *name;
-	float lat;
-	float lon;
-} waypoint_t;
-
-
-typedef struct
-{
-	const char *name;
-	const waypoint_t *wpts;
-	int	num_wpts;
-} route_t;
-
-
-extern const waypoint_t *waypoints;
-extern int num_waypoints;
-	// based on currently picked route
-
-extern bool show_output;
-
-extern float headingToWaypoint(const waypoint_t *waypoint);
-extern float distanceToWaypoint(const waypoint_t *waypoint);
-	// in simulator cpp
 
 //---------------------------
-// in nmea0183.cpp
+// in encode0183.cpp
 //---------------------------
 
 extern const char *nmeaDepth(float depth);
@@ -47,7 +17,15 @@ extern const char *nmeaWaterSpeed(float rel_water_speed, float true_rel_water_de
 
 // issued while "going_to" a waypoint
 
-extern const char *nmeaNavInfoB(float lat, float lon, float sog, float cog, const waypoint_t *wp, bool *arrived);
+const char *nmeaNavInfoB(
+	float lat,
+	float lon,
+	float sog,
+	float cog,
+	const char *wp_name,
+	float dist_to_wp,
+	float head_to_wp,
+	bool arrived);
 
 // fake gps satellites for VHF radio
 
@@ -55,26 +33,12 @@ const char *fakeGPSSatellites(int num);
 
 
 //---------------------------
-// nmeaInput.cpp
+// in decode0183.cpp
 //---------------------------
 
 extern int show_input;
 extern void handleNMEAInput(const String &msg);
-
-
-//---------------------------
-// wherever
-//---------------------------
-
-extern void nmeaExperiment();
-
-
-// in decode_ais.cpp
-
-
 extern void decode_vdm(const char* p);
-
-
 
 
 // end of nmea0183.h

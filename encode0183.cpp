@@ -1,5 +1,5 @@
 //---------------------------------------------
-// nmea0183.cpp
+// encode0183.cpp
 //---------------------------------------------
 // Sentences purported to be sent by E80
 // and whether or not I have seen, decoded, or sent them
@@ -251,7 +251,7 @@ const char *nmeaWaterSpeed(float rel_water_speed, float true_rel_water_degrees)
 
 
 
-const char *nmeaNavInfoB(float lat, float lon, float sog, float cog, const waypoint_t *wp, bool *arrived)
+const char *nmeaNavInfoB(float lat, float lon, float sog, float cog, const char *wp_name, float dist_to_wp, float head_to_wp, bool arrived)
 	// Sent when "going_to" a waypoint
 	// AP = Autopilot
 	// $ECRMB,A,0.000,R,,Waypoint 8,0920.044,N,08214.648,W,0.12,269.8,,V,A*5B
@@ -273,21 +273,14 @@ const char *nmeaNavInfoB(float lat, float lon, float sog, float cog, const waypo
 
 	float xte = 0.01;
 	char lr = 'R';
-	float dist_to_wp = distanceToWaypoint(wp);
-	float head_to_wp = headingToWaypoint(wp);
-
-	const float NM_TO_FEET = 6076.12;
-	float feet_to_wp = dist_to_wp * NM_TO_FEET;
-
-	*arrived = feet_to_wp < 400;
-	const char *arrive = *arrived ? "A" : "V";
+	const char *arrive = arrived ? "A" : "V";
 
 	//                       1 2     3  4  5  67 89 10    11    12    13
 	sprintf(nmea_buf,"$APRMB,A,%0.3f,%c,%s,%s,%s,%s,%0.3f,%0.1f,%0.1f,%s,",
 		xte,				// 2
 		lr,					// 3
 		"unused_from_wp",	// 4
-		wp->name,			// 5
+		wp_name,			// 5
 		standardLat(lat),	// 67
 		standardLon(lon),	// 89
 		dist_to_wp,			// 10
@@ -408,55 +401,6 @@ const char *fakeGPSSatellites(int num)		// 0 to 3 to send out 1 GSA and three GS
 	}
 
 #endif	// 0 unused sentences
-
-
-//----------------------------------
-// experiment
-//----------------------------------
-
-void nmeaExperiment()
-{
-	display(0,"nmeaExperiment",0);
-	nmea_buf[0] = 0;
-
-	#if 0
-		// test sending RTE message
-		// no error on E80 but it doesn't do anything
-		nmeaRTE(waypoints, num_waypoints,-1);
-			// leaves nmea_buf with the message
-	#endif
-
-	#if 0
-		// attempt to set a waypoint
-		// accepted
-		// NADA
-		float exp_lat = 9.335616;
-		float exp_lon = -82.246739;
-		sprintf(nmea_buf,"$APWPL,%s,%s,%s",
-			standardLat(exp_lat),
-			standardLon(exp_lon),
-			"EXP1");
-			checksum();
-	#endif
-
-	#if 0
-		// attempt to query waypoints
-		// queries are errors on E80
-		sprintf(nmea_buf,"$APECQ,%s",
-			"WPL" 	// nada
-			// "RTE"
-			);
-		checksum();
-	#endif
-
-
-	if (nmea_buf[0])
-	{
-		Serial.println(nmea_buf);
-		display(0,"sending %s",nmea_buf);
-		NMEA_SERIAL.println(nmea_buf);
-	}
-}
 
 
 
