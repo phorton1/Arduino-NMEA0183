@@ -13,6 +13,9 @@
 #include "nmea0183.h"
 #include "ge_routes.h"
 
+#define WITH_DEPTH_MESSAGES		1
+#define WITH_GPS_SATELLITES		0
+
 
 #define SEND_INTERVAL 			2000	// ms between sending update to E80
 #define SEND_DELAY				80		// ms between each sentence
@@ -121,7 +124,7 @@ static void usage()
 {
 	// display(0,"STATE: wp(%d) cog(%0.1f) sog(%0.1f) input(%d) output(%d) route(%s) going_to(%d) routing(%d)",
 	// 	waypoint_num,cog,sog,show_input,show_output,route_name,going_to,routing);
-	display(0,"USAGE",0);
+	display(0,"NMEA0183 USAGE",0);
 	proc_entry();
 	display(0,"? = show this help",0);
 	display(0,"x = start/stop simulator",0);
@@ -254,28 +257,46 @@ static void calculateApparentWind()
 
 static const char *getSentence(int num)
 	// Returns next simulation sentence to send or 0 at end of list
-	// When 'going_to" a waypoint, we send one extra sentence.
+	// When 'going_to" a waypoint, we send one extra nmeaNavInfoB sentence.
 {
-	int num_msgs = going_to ? 5 : 4;
+#if WITH_DEPTH_MESSAGES == 0
+	if (num == 2)
+		num = 3;
+#endif
 
-	if (num == num_msgs)
-		return 0;
+#if WITH_GPS_SATELLITES == 0
+	if (num >= 5 && num <= 8)
+		num = 9;
+#endif
+
+	if (!going_to && num == 9)
+		num = 10;
+
 	switch (num)
 	{
 		case 0: return nmeaNavInfoC(latitude, longitude, sog, cog);
 		case 1: return nmeaLatLon(latitude,longitude);
-		// case 2: return nmeaDepth(depth);
-		case 2: return nmeaWind('R',app_wind_speed, app_wind_angle);
+		case 2: return nmeaDepth(depth);
+		case 3: return nmeaWind('R',app_wind_speed, app_wind_angle);
 			// R = apparent wind relative to the bow
-		case 3: return nmeaWaterSpeed(sog,cog);
+		case 4: return nmeaWaterSpeed(sog,cog);
 			// The unmoving water is moving at sog, cog+180 relative to the boat
 			// Once this was implemented, The E80 started calculating the "True"
 			// and "Ground" speeds from the Relative wind, and I no longer needed
 			// to send the 'True' wind speed and direction.
 
+		// fake satellite sentences
+
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+			return fakeGPSSatellites(num - 5);
+
+
 		// going to waypoints and automatic route advancement
 
-		case 4:
+		case 9:
 		{
 			const waypoint_t *wp = &waypoints[waypoint_num];
 			const char *send = nmeaNavInfoB(latitude, longitude, sog, cog, wp, &arrived);
@@ -357,6 +378,9 @@ static const char *getSentence(int num)
 #endif	// unimplemented messages
 
 	}	// switch (num)
+
+	return 0;   // done with sentences
+
 }	// getSentence()
 
 

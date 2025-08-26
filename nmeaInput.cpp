@@ -39,7 +39,8 @@ const decoder_t decoders[] =
 	{ 0,	"WPL",	"Waypoint Location" },
 	{ 1,	"VTG",	"Track made good and Ground speed" },
 	{ 1,	"ZDA",	"Time & Date - UTC, day, month, year and local time zone" },
-	{ 1,	"AIQ",	"Proprietary AIS query" }
+	{ 1,	"AIQ",	"Proprietary AIS query" },
+	{ 0,    "VDM",  "Encoded AIS message" }
 };
 
 
@@ -52,6 +53,7 @@ static int input_msg_num = 0;
 
 void handleNMEAInput(const String &msg)
 {
+
 	input_msg_num++;
 	if (show_input)
 	{
@@ -71,8 +73,12 @@ void handleNMEAInput(const String &msg)
 		else
 			seen = found->seen;
 
-		if (!seen || show_input == 2)
+		if (!seen || show_input == 2 || name.equals("VDM"))
+		{
 			display(0,"%-4d <-- %s",input_msg_num,msg.c_str());
+			if (name.equals("VDM"))
+				decode_vdm(msg.c_str());
+		}
 	}
 }
 

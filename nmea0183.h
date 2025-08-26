@@ -49,6 +49,10 @@ extern const char *nmeaWaterSpeed(float rel_water_speed, float true_rel_water_de
 
 extern const char *nmeaNavInfoB(float lat, float lon, float sog, float cog, const waypoint_t *wp, bool *arrived);
 
+// fake gps satellites for VHF radio
+
+const char *fakeGPSSatellites(int num);
+
 
 //---------------------------
 // nmeaInput.cpp
@@ -63,6 +67,14 @@ extern void handleNMEAInput(const String &msg);
 //---------------------------
 
 extern void nmeaExperiment();
+
+
+// in decode_ais.cpp
+
+
+extern void decode_vdm(const char* p);
+
+
 
 
 // end of nmea0183.h

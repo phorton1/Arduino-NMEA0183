@@ -319,6 +319,24 @@ const char *nmeaNavInfoB(float lat, float lon, float sog, float cog, const waypo
 
 
 
+const char *fakeGPSSatellites(int num)		// 0 to 3 to send out 1 GSA and three GSB sentences
+{
+	const char* gsa = "$GPGSA,A,3,03,05,07,09,11,13,15,17,19,21,23,25,1.8,1.0,1.5";
+	const char* gsv1 = "$GPGSV,3,1,12,03,45,120,42,05,60,180,45,07,30,270,40,09,15,090,38";
+	const char* gsv2 = "$GPGSV,3,2,12,11,75,045,43,13,50,135,41,15,25,225,39,17,10,315,37";
+	const char* gsv3 = "$GPGSV,3,3,12,19,65,060,44,21,40,150,42,23,20,240,36,25,05,330,35";
+
+	const char *sentence =
+		(num == 3) ? gsv3 :
+		(num == 2) ? gsv2 :
+		(num == 1) ? gsv3 : gsa;
+	strcpy(nmea_buf, sentence);
+	checksum();
+	return nmea_buf;
+}
+
+
+
 
 
 //----------------------------------------------------

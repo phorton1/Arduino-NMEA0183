@@ -51,6 +51,9 @@ void setup()
 
 	NMEA_SERIAL.begin(38400, SERIAL_8N1, RXD2, TXD2);
 
+	decode_vdm("!AIVDM,1,1,,B,B52K4V@00>Qp6l1EMvw>WwtUoP06,0*72");
+		// "!AIVDM,1,1,,A,H3Q;;JhhtuT60PDD00000000000,2*77");
+
 	display(0,"NMEA0183 setup() completed",0);
 
 	#if ALIVE_LED
