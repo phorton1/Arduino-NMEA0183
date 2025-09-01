@@ -45,7 +45,7 @@
 #define MAX_NMEA_MSG	180
 	// my buffer size is way bigger than official NMEA0183
 	// maximum of 80 bytes
-char nmea_buf[MAX_NMEA_MSG+1];
+static char nmea_buf[MAX_NMEA_MSG+1];
 
 
 //----------------------------------------------------
